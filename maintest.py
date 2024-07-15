@@ -222,7 +222,7 @@ model.save_weights('dncnn_model.weights.h5')
 
 
 #BEGIN IMAGE SAVING
-'''model1 = load_model('transformer_model.keras')
+model1 = load_model('transformer_model.keras')
 model2 = load_model('unet_model.h5')
 model3 = load_model('dncnn_model.weights.h5')
 # Predict on a test set
@@ -249,10 +249,10 @@ for i in range(len(X_test)):
     reconstructed_img2 = predicted_images2[i] * 255	
     reconstructed_img3 = predicted_images3[i] * 255
     save_as_flt(original_img, os.path.join(output_dir_original, f'original_{i}.flt'))
-    save_as_flt(reconstructed_img1, os.path.join(output_dir_reconstructed, f'reconstructed1_{i}.flt'))
-    save_as_flt(reconstructed_img2, os.path.join(output_dir_reconstructed, f'reconstructed2_{i}.flt'))
-    save_as_flt(reconstructed_img3, os.path.join(output_dir_reconstructed, f'reconstructed3_{i}.flt'))
+    save_as_flt(reconstructed_img1, os.path.join(output_dir_reconstructed1, f'reconstructed1_{i}.flt'))
+    save_as_flt(reconstructed_img2, os.path.join(output_dir_reconstructed2, f'reconstructed2_{i}.flt'))
+    save_as_flt(reconstructed_img3, os.path.join(output_dir_reconstructed3, f'reconstructed3_{i}.flt'))
 
 print(f"Saved original images to {output_dir_original}")
 print(f"Saved reconstructed images to {output_dir_reconstructed}")
-#END IMAGE SAVING'''
+#END IMAGE SAVING
