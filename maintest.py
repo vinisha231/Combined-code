@@ -94,7 +94,7 @@ transformer_layers = 6 #How many transformer layers
 num_classes = 4 #Not sure if this line is useful
 
 model = build_transformer_model(num_patches, projection_dim, num_heads, transformer_layers, num_classes) #Builds the model with our attributes
-model.compile(optimizer='adam', loss='mean_squared_error') #Uses mse loss
+model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy']) #Uses mse loss
 
 
 # Train model
