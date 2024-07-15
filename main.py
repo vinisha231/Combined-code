@@ -152,3 +152,29 @@ model.fit(X_train, y_train, validation_split=0.1, epochs=750, batch_size=16) #Tr
 # Save model
 model.save('unet_model.h5') #Saves the model
 #UNET MODEL CODE END
+
+#DCNN Model Begins
+def DnCNN(depth=17, filters=64, image_channels=1, use_bnorm=True):
+    input_layer = Input(shape=(None, None, image_channels), name='input')
+    x = layers.Conv2D(filters=filters, kernel_size=3, padding='same', activation='relu')(input_layer)
+
+    for i in range(depth - 2):
+        x = layers.Conv2D(filters=filters, kernel_size=3, padding='same')(x)
+        if use_bnorm:
+            x = layers.BatchNormalization(axis=3)(x)
+        x = layers.Activation('relu')(x)
+
+    output_layer = layers.Conv2D(filters=image_channels, kernel_size=3, padding='same')(x)
+    output_layer = Subtract()([input_layer, output_layer])
+    model = models.Model(inputs=input_layer, outputs=output_layer, name='DnCNN')
+    return model
+X_train, y_train = load_real_data(noisy_dir, normal_dir, image_shape, limit=100)
+model = DnCNN(depth=17, filters=64, image_channels=1, use_bnorm=True)
+model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
+
+# Train the model
+model.fit(X_train, y_train, epochs=250, batch_size=32, verbose=1)
+# Save the model architecture and weights
+model.save('dncnn_model.h5')
+model.save_weights('dncnn_model.weights.h5')
+#DNCNN Model Ends
