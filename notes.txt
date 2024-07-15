@@ -1,0 +1,42 @@
+	python -c "import matplotlib; print(matplotlib.matplotlib_fname())"
+
+^^^this shows where the matplotlibrc file is
+to change the logging level of tensorflow gpu, which supresses the output related to its functionality, create and edit a .bashrc file for
+the conda environment you are working in
+
+	vim /home/NETID/bodhik/miniconda3/envs/python39/.bashrc
+		export TF_CPP_MIN_LOG_LEVEL=3
+		export MPLBACKEND=qtagg
+
+and in the file with the tensorflow code:
+	...
+	import matplotlib
+	matplotlib.use("qtagg")
+	import matplotlib.pyplot as plt
+	...	
+
+to make an automatic ssh connection without the need for a password
+
+create an ssh key pair to use instead of a password:
+	
+ssh-keygen -t rsa -b 2048
+	store file: ~/.ssh/id_rsa_kaczmarz
+	leave the other two options blank! (hit enter twice)
+
+ssh-copy-id -i ~/.ssh/id_rsa_kaczmarz.pub NETID@kaczmarz.uwb.edu
+
+
+test that it worked
+	ssh -i ~/.ssh/id_rsa_kaczmarz
+
+create an ssh config for the server by adding the following to the file
+~/.ssh/config
+
+	Host kaczmarz
+		HostName kaczmarz.uwb.edu
+		User NETID
+		IdentityFile ~/.ssh/id_rsa_kaczmarz
+
+save the file and you should only need to type:
+	ssh kaczmarz
+and be logged in without a password or prompt for one
