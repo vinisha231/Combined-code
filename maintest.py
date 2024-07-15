@@ -222,9 +222,13 @@ model.save_weights('dncnn_model.weights.h5')
 
 
 #BEGIN IMAGE SAVING
+model1 = load_model('transformer_model.keras')
+model2 = load_model('unet_model.h5')
+model3 = load_model('dncnn_model.weights.h5')
 # Predict on a test set
-predicted_images = model.predict(X_test)
-
+predicted_images1 = model1.predict(X_test)
+predicted_images2 = model2.predict(X_test)
+predicted_images3 = model3.predict(X_test)
 # Save original and reconstructed images for comparison
 output_dir_original = '/mmfs1/home/bkphill2/output/original_images' #Saves the originals and reconstructed images to directory (Commented in other git code)
 output_dir_reconstructed = '/mmfs1/home/bkphill2/output/reconstructed_images'
@@ -239,10 +243,13 @@ def save_as_flt(data, file_path):
 
 for i in range(len(X_test)):
     original_img = X_test[i] * 255  # Scale if necessary, but keep as float if saving as .flt
-    reconstructed_img = predicted_images[i] * 255  # Scale if necessary, but keep as float
-
+    reconstructed_img1 = predicted_images1[i] * 255  # Scale if necessary, but keep as float
+    reconstructed_img2 = predicted_images2[i] * 255	
+    reconstructed_img3 = predicted_images3[i] * 255
     save_as_flt(original_img, os.path.join(output_dir_original, f'original_{i}.flt'))
-    save_as_flt(reconstructed_img, os.path.join(output_dir_reconstructed, f'reconstructed_{i}.flt'))
+    save_as_flt(reconstructed_img1, os.path.join(output_dir_reconstructed, f'reconstructed1_{i}.flt'))
+    save_as_flt(reconstructed_img2, os.path.join(output_dir_reconstructed, f'reconstructed2_{i}.flt'))
+    save_as_flt(reconstructed_img3, os.path.join(output_dir_reconstructed, f'reconstructed3_{i}.flt'))
 
 print(f"Saved original images to {output_dir_original}")
 print(f"Saved reconstructed images to {output_dir_reconstructed}")
