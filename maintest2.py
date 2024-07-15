@@ -41,14 +41,14 @@ dirty_images = load_images_from_directory(dirty_dir)
 
 X_train, X_test, y_train, y_test = train_test_split(dirty_images, clean_images, test_size=0.2, random_state=42)
 #END DATA IMPLEMENTATION
-print("Enter 1 for transformers")
-print("Enter 2 for unet")
-print("Enter 3 for dncnn")
+print("Enter 1 for Transformers")
+print("Enter 2 for Unet")
+print("Enter 3 for DnCNN")
 number = int(input("Enter preference:"))
 #BEGIN IMAGE SAVING
-model1 = load_model('transformer_model.keras')
-model2 = load_model('unet_model.h5')
-model3 = load_model('dncnn_model.weights.h5')
+model1 = Transformer.load_model('transformer_model.keras')
+model2 = Unet.load_model('unet_model.h5')
+model3 = dncnn.load_model('dncnn_model.weights.h5')
 # Predict on a test set
 predicted_images1 = model1.predict(X_test)
 predicted_images2 = model2.predict(X_test)
