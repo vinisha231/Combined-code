@@ -207,7 +207,7 @@ def DnCNN(depth=17, filters=64, image_channels=1, use_bnorm=True):
     output_layer = Subtract()([input_layer, output_layer])
     model = models.Model(inputs=input_layer, outputs=output_layer, name='DnCNN')
     return model
-X_train, y_train = load_real_data(noisy_dir, normal_dir, image_shape, limit=100)
+
 model = DnCNN(depth=17, filters=64, image_channels=1, use_bnorm=True)
 model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
 
