@@ -177,4 +177,4 @@ def unet_model(input_size=(512, 512, 3)): #Defining the model
     model = unet_model(input_size=(512, 512, 1)) #Creates a model with 512x512x1 inputs
     model.compile(optimizer=‘adam’, loss=combined_loss, metrics=[‘accuracy’, ssim_loss, mse_loss]) #Optimizer of adam
     model.fit(X_train, y_train, validation_split=0.1, epochs=50, batch_size=8, verbose=1) #Fit function for 50 epochs
-    model.save(‘unet_model.h5’) #Saves unet model
+    model.save(‘unet_model.h5’) 
