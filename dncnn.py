@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import os
 from glob import glob
 import struct
-
+  
 # Function to define the DnCNN model
 def DnCNN(depth=17, filters=64, image_channels=1, use_bnorm=True):
     input_layer = Input(shape=(None, None, image_channels), name='input')
