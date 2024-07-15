@@ -19,11 +19,13 @@
         return np.array(images)
 
     # Directories
-    clean_dir = '/mmfs1/gscratch/uwb/bkphill2/900_views_flt' #Sets the data directories
-    dirty_dir = '/mmfs1/gscratch/uwb/bkphill2/60_views_flt'
+    clean_dir = '/mmfs1/gscratch/uwb/CT_images/RECONS2024/900views' #Sets the data directories
+    dirty_dir = '/mmfs1/gscratch/uwb/CT_images/RECONS2024/60views'
 
     clean_images = load_images_from_directory(clean_dir) #Performs the load image function on data directories
     dirty_images = load_images_from_directory(dirty_dir)
+
+    X_train, X_test, y_train, y_test = train_test_split(dirty_images, clean_images, test_size=0.2, random_state=42)
 #END DATA IMPLEMENTATION
 
 
@@ -96,7 +98,7 @@ model.compile(optimizer='adam', loss='mean_squared_error') #Uses mse loss
 
 
 # Train model
-model.fit(X_train, y_train, validation_split=0.1, epochs=250, batch_size=12)
+model.fit(X_train, y_train, validation_split=0.1, epochs=250, batch_size=16, verbose=1)
 
 # Save model
 model.save('transformer_model.keras')
@@ -174,14 +176,13 @@ def unet_model(input_size=(512, 512, 3)): #Defining the model
         model = models.Model(inputs=inputs, outputs=[outputs]) #Compresses the function into a single variable "model"
 
         return model #Returns that variable
-X_train, X_test, y_train, y_test = train_test_split(dirty_images, clean_images, test_size=0.2, random_state=42)
 
 #defines model as the unet model
 model = unet_model()
 model.compile(optimizer='adam', loss=combined_loss, metrics=['accuracy']) #Compiles the model with adam optimizer and our mixed loss
 
 # Train model
-model.fit(X_train, y_train, validation_split=0.1, epochs=750, batch_size=16) #Trains the dirty images with clean images as target
+model.fit(X_train, y_train, validation_split=0.1, epochs=250, batch_size=16, verbose=1) #Trains the dirty images with clean images as target
 
 # Save model
 model.save('unet_model.h5') #Saves the model
@@ -211,7 +212,7 @@ model = DnCNN(depth=17, filters=64, image_channels=1, use_bnorm=True)
 model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
 
 # Train the model
-model.fit(X_train, y_train, epochs=250, batch_size=32, verbose=1)
+model.fit(X_train, y_train, epochs=250, batch_size=16,  validation_split=0.1, verbose=1)
 # Save the model architecture and weights
 model.save('dncnn_model.h5')
 model.save_weights('dncnn_model.weights.h5')
