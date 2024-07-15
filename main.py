@@ -41,7 +41,6 @@ save_recon_dataset_as_tfrecords(tensor_label_dataset) saves tensor-label pair da
 """
 
 
-
 HOME_DIRECTORY = '/home/NETID/bodhik/reudir/UWB_CT' #your home directory, to make all commands run smoothly
 RELATIVE_ROOT_TFRECORDS_DIR = 'tfrecords_dir' #root to tfrecords_dir relative to the directory you are running the program in
 FILE_PATTERN = '/data/CT_images/train/images/0000100[0-2]*.flt' #the file pattern. It expects 512,512,1 datapoints of type float32
@@ -287,6 +286,8 @@ def save_recon_dataset_as_tfrecords(tensor_label_dataset):
 	returns the full path to the directory that the tfrecords were stored to"""
 
 
+
+
 #Begin Transformer Model Code
 def create_patch_embeddings(inputs, patch_size=2, projection_dim=64): #Defines patch embedding function
         # Assuming inputs have shape (batch_size, height, width, channels)
@@ -360,6 +361,7 @@ model.fit(X_train, y_train, validation_split=0.1, epochs=250, batch_size=12)
 # Save model
 model.save('transformer_model.keras')
 #End Transformer Model Code
+
 
 
 
@@ -448,6 +450,7 @@ model.save('unet_model.h5') #Saves the model
 
 
 
+	
 #DCNN Model Begins
 def DnCNN(depth=17, filters=64, image_channels=1, use_bnorm=True):
     input_layer = Input(shape=(None, None, image_channels), name='input')
