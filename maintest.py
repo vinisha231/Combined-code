@@ -59,9 +59,10 @@ def positional_encoding(num_patches, projection_dim): #Def function for position
         pos_enc = pos_enc[np.newaxis, ...]  # Shape: [1, num_patches, projection_dim]
         return tf.cast(pos_enc, dtype=tf.float32) #Casts as float for use in transformer
 
+@register_keras_serializable(package='Custom', name='TransformerBlock')
 class TransformerBlock(layers.Layer):  #Creates the transformer block class
-      def __init__(self, projection_dim, num_heads): #constructor  method with params of self, the dim of embedding space, and number of transformer heads
-            super(TransformerBlock, self).__init__() #calls layers.layer parent class and init.
+      def __init__(self, projection_dim, num_heads, **kwargs): #constructor  method with params of self, the dim of embedding space, and number of transformer heads
+            super(TransformerBlock, self).__init__(**kwargs) #calls layers.layer parent class and init.
             self.attention = layers.MultiHeadAttention(num_heads=num_heads, key_dim=projection_dim) #Attention layer
             self.ffn = tf.keras.Sequential([ #Dense forward projection/multilayer perceptron layer
                 layers.Dense(projection_dim, activation="relu"),
@@ -124,6 +125,7 @@ def ssim_loss(y_true, y_pred): #Defining a function of ssim loss image to image
 def mse_loss(y_true, y_pred): #Defining a mean squared error loss
     return tf.reduce_mean(tf.square(y_true - y_pred)) #Returning loss
 
+@tf.keras.utils.register_keras_serializable()
 def combined_loss(y_true, y_pred, alpha = 0.2, beta = 0.8): #Define a mixed loss with proportions alpha and beta
     return alpha * ssim_loss(y_true, y_pred) + beta * mse_loss(y_true, y_pred) #Return the sum of the weighted losses =1
 
@@ -181,7 +183,7 @@ def unet_model(input_size=(512, 512, 3)): #Defining the model
         c9 = layers.Conv2D(16, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(c9)
 
 
-        outputs = layers.Conv2D(3, (1, 1), activation='sigmoid')(c9) #Final 3 filter 1x1 kernel with sigmoid activation
+        outputs = layers.Conv2D(1, (1, 1), activation='sigmoid')(c9) #Final 3 filter 1x1 kernel with sigmoid activation
         model = models.Model(inputs=inputs, outputs=[outputs]) #Compresses the function into a single variable "model"
 
         return model #Returns that variable
@@ -194,7 +196,7 @@ model.compile(optimizer='adam', loss=combined_loss, metrics=['accuracy']) #Compi
 model.fit(X_train, y_train, validation_split=0.1, epochs=250, batch_size=16, verbose=1) #Trains the dirty images with clean images as target
 
 # Save model
-model.save('unet_model.h5') #Saves the model
+model.save('unet_model.keras') #Saves the model
 #UNET MODEL CODE END
 
 
@@ -223,7 +225,7 @@ model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
 # Train the model
 model.fit(X_train, y_train, epochs=250, batch_size=16,  validation_split=0.1, verbose=1)
 # Save the model architecture and weights
-model.save('dncnn_model.h5')
+model.save('dncnn_model.keras')
 model.save_weights('dncnn_model.weights.h5')
 #END DNCNN MODEL
 
@@ -232,8 +234,8 @@ model.save_weights('dncnn_model.weights.h5')
 
 #BEGIN IMAGE SAVING
 model1 = load_model('transformer_model.keras')
-model2 = load_model('unet_model.h5')
-model3 = load_model('dncnn_model.weights.h5')
+model2 = load_model('unet_model.keras', custom_objects={'custom_loss': combined_loss})
+model3 = load_model('dncnn_model.keras')
 # Predict on a test set
 predicted_images1 = model1.predict(X_test)
 predicted_images2 = model2.predict(X_test)
@@ -263,5 +265,7 @@ for i in range(len(X_test)):
     save_as_flt(reconstructed_img3, os.path.join(output_dir_reconstructed3, f'reconstructed3_{i}.flt'))
 
 print(f"Saved original images to {output_dir_original}")
-print(f"Saved reconstructed images to {output_dir_reconstructed}")
+print(f"Saved reconstructed images to {output_dir_reconstructed1}")
+print(f"Saved reconstructed images to {output_dir_reconstructed2}")
+print(f"Saved reconstructed images to {output_dir_reconstructed3}")
 #END IMAGE SAVING
