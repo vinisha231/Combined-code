@@ -1,3 +1,4 @@
+#BEGIN TRANSFORMER MODEL CODE
 def create_patch_embeddings(inputs, patch_size=2, projection_dim=64): #Defines patch embedding function
         # Assuming inputs have shape (batch_size, height, width, channels)
         batch_size, height, width, channels = inputs.shape
@@ -17,9 +18,10 @@ def positional_encoding(num_patches, projection_dim): #Def function for position
         pos_enc = pos_enc[np.newaxis, ...]  # Shape: [1, num_patches, projection_dim]
         return tf.cast(pos_enc, dtype=tf.float32) #Casts as float for use in transformer
 
+@register_keras_serializable(package='Custom', name='TransformerBlock')
 class TransformerBlock(layers.Layer):  #Creates the transformer block class
-      def __init__(self, projection_dim, num_heads): #constructor  method with params of self, the dim of embedding space, and number of transformer heads
-            super(TransformerBlock, self).__init__() #calls layers.layer parent class and init.
+      def __init__(self, projection_dim, num_heads, **kwargs): #constructor  method with params of self, the dim of embedding space, and number of transformer heads
+            super(TransformerBlock, self).__init__(**kwargs) #calls layers.layer parent class and init.
             self.attention = layers.MultiHeadAttention(num_heads=num_heads, key_dim=projection_dim) #Attention layer
             self.ffn = tf.keras.Sequential([ #Dense forward projection/multilayer perceptron layer
                 layers.Dense(projection_dim, activation="relu"),
@@ -60,12 +62,4 @@ num_heads = 4 #Number of heads in the transformer
 transformer_layers = 6 #How many transformer layers
 num_classes = 4 #Not sure if this line is useful
 
-model = build_transformer_model(num_patches, projection_dim, num_heads, transformer_layers, num_classes) #Builds the model with our attributes
-model.compile(optimizer='adam', loss='mean_squared_error') #Uses mse loss
-
-
-# Train model
-model.fit(X_train, y_train, validation_split=0.1, epochs=250, batch_size=12)
-
-# Save model
-model.save('transformer_model.keras')
+model = build_transformer_model(num_patches, projection_dim, num_heads, transformer_layers, num_classes)
