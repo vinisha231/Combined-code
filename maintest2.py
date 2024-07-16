@@ -72,11 +72,26 @@ predicted_images = model.predict(X_test)
 output_dir_original = '/mmfs1/gscratch/uwb/vdhaya/output/original_images'
 output_dir_reconstructed = f'/mmfs1/gscratch/uwb/vdhaya/output/reconstructed_images{number}'
 
-for i in range(len(X_test)):
-    original_img = X_test[i] * 255  # Scale back if necessary
-    reconstructed_img = predicted_images[i] * 255
-    save_as_flt(original_img, os.path.join(output_dir_original, f'original_{i}.flt'))
-    save_as_flt(reconstructed_img, os.path.join(output_dir_reconstructed, f'reconstructed_{i}.flt'))
 
-print(f"Saved original images to {output_dir_original}")
-print(f"Saved reconstructed images to {output_dir_reconstructed}")
+# Process each image in the directory
+for i, image_path in enumerate(image_paths):
+    print(f'Processing image: {image_path}')
+
+    # Preprocess the test image
+    image = preprocess_image(image_path, image_shape)
+
+    # Denoise the grayscale image using the DnCNN model
+    denoised_noise = model.predict(image)
+    
+    # Save the denoised image to the specified folder
+    output_image_path = os.path.join(output_dir, f'denoised_image_{i + 1}.flt')
+    image = np.fromfile('/mmfs1/gscratch/uwb/vdhaya/output/denoised_image_{i +1}.flt',dtype='float32')
+    image = np.reshape(image,(512,512))
+    save_flt_file(output_image_path, denoised_image[0, :, :, 0])
+    plt.savefig('tmp{i +1}.png')
+    print(f"Denoised image saved to: {output_image_path}")
+
+    # Optionally display the images
+    display_images(image, image, denoised_image)
+
+
