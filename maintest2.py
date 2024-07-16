@@ -69,8 +69,8 @@ if model is None:
 # Predict and Save
 predicted_images = model.predict(X_test)
 
-output_dir_original = '/mmfs1/home/bkphill2/output/original_images'
-output_dir_reconstructed = f'/mmfs1/home/bkphill2/output/reconstructed_images{number}'
+output_dir_original = '/mmfs1/gscratch/uwb/vdhaya/output/original_images'
+output_dir_reconstructed = f'/mmfs1/gscratch/uwb/vdhaya/output/reconstructed_images{number}'
 
 for i in range(len(X_test)):
     original_img = X_test[i] * 255  # Scale back if necessary
