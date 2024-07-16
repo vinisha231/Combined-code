@@ -1,13 +1,3 @@
-#UNET MODEL CODE BEGIN
-def ssim_loss(y_true, y_pred): #Defining a function of ssim loss image to image
-    return 1 - tf.reduce_mean(tf.image.ssim(y_true, y_pred, max_val=1.0)) #return the loss value
-
-def mse_loss(y_true, y_pred): #Defining a mean squared error loss
-    return tf.reduce_mean(tf.square(y_true - y_pred)) #Returning loss
-
-def combined_loss(y_true, y_pred, alpha = 0.2, beta = 0.8): #Define a mixed loss with proportions alpha and beta
-    return alpha * ssim_loss(y_true, y_pred) + beta * mse_loss(y_true, y_pred) #Return the sum of the weighted losses =1
-
 def unet_model(input_size=(512, 512, 3)): #Defining the model
         inputs = tf.keras.Input(input_size)
             # Downsample
@@ -62,19 +52,10 @@ def unet_model(input_size=(512, 512, 3)): #Defining the model
         c9 = layers.Conv2D(16, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(c9)
 
 
-        outputs = layers.Conv2D(3, (1, 1), activation='sigmoid')(c9) #Final 3 filter 1x1 kernel with sigmoid activation
+        outputs = layers.Conv2D(1, (1, 1), activation='sigmoid')(c9) #Final 3 filter 1x1 kernel with sigmoid activation
         model = models.Model(inputs=inputs, outputs=[outputs]) #Compresses the function into a single variable "model"
 
         return model #Returns that variable
-X_train, X_test, y_train, y_test = train_test_split(dirty_images, clean_images, test_size=0.2, random_state=42)
 
 #defines model as the unet model
 model = unet_model()
-model.compile(optimizer='adam', loss=combined_loss, metrics=['accuracy']) #Compiles the model with adam optimizer and our mixed loss
-
-# Train model
-model.fit(X_train, y_train, validation_split=0.1, epochs=750, batch_size=16) #Trains the dirty images with clean images as target
-
-# Save model
-model.save('unet_model.h5') #Saves the model
-#UNET MODEL CODE END
