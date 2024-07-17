@@ -18,7 +18,7 @@ def positional_encoding(num_patches, projection_dim): #Def function for position
         pos_enc = pos_enc[np.newaxis, ...]  # Shape: [1, num_patches, projection_dim]
         return tf.cast(pos_enc, dtype=tf.float32) #Casts as float for use in transformer
 
-@register_keras_serializable(package='Custom', name='TransformerBlock')
+
 class TransformerBlock(layers.Layer):  #Creates the transformer block class
       def __init__(self, projection_dim, num_heads, **kwargs): #constructor  method with params of self, the dim of embedding space, and number of transformer heads
             super(TransformerBlock, self).__init__(**kwargs) #calls layers.layer parent class and init.
