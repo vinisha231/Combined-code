@@ -77,7 +77,7 @@ def train_selected_model(choice, X_train, y_train):
         model.fit(X_train, y_train, validation_split=0.1, epochs=1, batch_size=12, verbose=1)
     else:
         print("Model loading failed. Training aborted.")
-    model.save(f'model_{choice}.h5')
+    model.save(f'model_{choice}.keras')
 
 # Model Selection
 print("Enter 1 for Transformers")
