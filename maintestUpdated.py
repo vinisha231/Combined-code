@@ -39,6 +39,9 @@ def load_images_from_directory(directory, target_size=(512, 512)):
 clean_dir = '/mmfs1/gscratch/uwb/CT_images/RECONS2024/900views'
 dirty_dir = '/mmfs1/gscratch/uwb/CT_images/RECONS2024/60views'
 
+clean_dir_test = '/mmfs1/gscratch/uwb/CT_images/recons2024/900views'
+dirty_dir_test = '/mmfs1/gscratch/uwb/CT_images/recons2024/60views'
+
 clean_images = load_images_from_directory(clean_dir)
 dirty_images = load_images_from_directory(dirty_dir)
 clean_images_test = load_images_from_directory(clean_dir_test)
