@@ -41,6 +41,8 @@ dirty_dir = '/mmfs1/gscratch/uwb/CT_images/RECONS2024/60views'
 
 clean_images = load_images_from_directory(clean_dir)
 dirty_images = load_images_from_directory(dirty_dir)
+clean_images_test = load_images_from_directory(clean_dir_test)
+dirty_images_test = load_images_from_directory(dirty_dir_test)
 
 X_train, X_test, y_train, y_test = train_test_split(dirty_images, clean_images, test_size=0.2, random_state=42)
 # END DATA IMPLEMENTATION
@@ -90,16 +92,16 @@ if model is None:
     raise ValueError("Invalid model choice. Please enter 1, 2, or 3.")
 
 # Predict and Save
-predicted_images = model.predict(X_test)
+predicted_images = model.predict(dirty_images_test)
 
 output_dir_original = '/mmfs1/gscratch/uwb/bkphill2/output/original_images'
 output_dir_reconstructed = f'/mmfs1/gscratch/uwb/bkphill2/output/reconstructed_images{number}'
 
-for i in range(len(X_test)):
+for i in range(len(clean_images_test)):
     original_img = X_test[i]
     reconstructed_img = predicted_images[i]
-    save_as_flt(original_img, os.path.join(output_dir_original, f'original_{i}.flt'))
-    save_as_flt(reconstructed_img, os.path.join(output_dir_reconstructed, f'reconstructed_{i}.flt'))
+    save_as_flt(original_img, os.path.join(output_dir_original, f'original_{i:04}.flt'))
+    save_as_flt(reconstructed_img, os.path.join(output_dir_reconstructed, f'reconstructed_{i:04}.flt'))
 
 print(f"Saved original images to {output_dir_original}")
 print(f"Saved reconstructed images to {output_dir_reconstructed}")
