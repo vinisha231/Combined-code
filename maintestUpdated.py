@@ -47,7 +47,7 @@ dirty_images = load_images_from_directory(dirty_dir)
 clean_images_test = load_images_from_directory(clean_dir_test)
 dirty_images_test = load_images_from_directory(dirty_dir_test)
 
-X_train, X_test, y_train, y_test = train_test_split(dirty_images, clean_images, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(dirty_images, dirty_images_test, clean_images, clean_images_test, test_size=0.2, random_state=42)
 # END DATA IMPLEMENTATION
 
 def save_as_flt(data, file_path):
