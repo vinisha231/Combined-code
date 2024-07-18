@@ -3,6 +3,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers, models
 from sklearn.model_selection import train_test_split
+from tensorflow.keras.models import load_model
 
 # Import necessary functions and classes
 from Transformer import build_transformer_model
@@ -31,7 +32,6 @@ def load_images_from_directory(directory, target_size=(512, 512)):
         if filename.endswith(".flt"):
             file_path = os.path.join(directory, filename)
             img = load_flt_file(file_path, shape=target_size)
-            img = img / 255.0  # Normalize to [0, 1]
             images.append(img)
     return np.array(images)
 
@@ -49,17 +49,13 @@ def save_as_flt(data, file_path):
     """Save data as a .flt file."""
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     with open(file_path, 'wb') as file:
-        file.write(data.astype(np.float32).tobytes())
+        file.write(data.astype(np.float16).tobytes())
 
 
 def load_model_by_choice(choice):
     """Load the model based on user choice."""
-    models = {
-        1: Transformer.load_model('transformer_model.keras'),
-        2: Unet.load_model('unet_model.h5'),
-        3: dncnn.load_model('dncnn_model.weights.h5')
-    }
-    return models.get(choice, None)
+    model = load_model(f'model_{choice}.keras')
+    return model
 
 def pick_model(choice):
     if choice == 1:
@@ -73,8 +69,10 @@ def pick_model(choice):
 def train_selected_model(choice, X_train, y_train):
     model = pick_model(choice)
     if model is not None:
+        print(model.output_shape)
+        assert model.output_shape == (None, 512, 512, 1), "Mismatch in model output shape."
         model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
-        model.fit(X_train, y_train, validation_split=0.1, epochs=1, batch_size=12, verbose=1)
+        model.fit(X_train, y_train, validation_split=0.1, epochs=10, batch_size=8)
     else:
         print("Model loading failed. Training aborted.")
     model.save(f'model_{choice}.keras')
@@ -94,15 +92,14 @@ if model is None:
 # Predict and Save
 predicted_images = model.predict(X_test)
 
-output_dir_original = '/mmfs1/gscratch/uwb/vdhaya/output/original_images'
-output_dir_reconstructed = f'/mmfs1/gscratch/uwb/vdhaya/output/reconstructed_images{number}'
+output_dir_original = '/mmfs1/gscratch/uwb/bkphill2/output/original_images'
+output_dir_reconstructed = f'/mmfs1/gscratch/uwb/bkphill2/output/reconstructed_images{number}'
 
 for i in range(len(X_test)):
-    original_img = X_test[i] * 255  # Scale back if necessary
-    reconstructed_img = predicted_images[i] * 255
+    original_img = X_test[i]
+    reconstructed_img = predicted_images[i]
     save_as_flt(original_img, os.path.join(output_dir_original, f'original_{i}.flt'))
     save_as_flt(reconstructed_img, os.path.join(output_dir_reconstructed, f'reconstructed_{i}.flt'))
 
 print(f"Saved original images to {output_dir_original}")
 print(f"Saved reconstructed images to {output_dir_reconstructed}")
-          
