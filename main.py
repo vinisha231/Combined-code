@@ -16,8 +16,7 @@ tf.get_logger().setLevel('ERROR')  # Suppress TensorFlow logging (alternative me
 
 # BEGIN DATA IMPLEMENTATION
 
-def load_flt_file(file_path, shape=(512, 512), add_channel=True):
-    """Load and reshape .flt files."""
+def load_flt_file(file_path, shape=(512, 512), add_channel=True): 
     with open(file_path, 'rb') as file:
         data = np.fromfile(file, dtype=np.float32)
         img = data.reshape(shape)
@@ -25,8 +24,7 @@ def load_flt_file(file_path, shape=(512, 512), add_channel=True):
             img = img[:, :, np.newaxis]
     return img
 
-def load_images_from_directory(directory, target_size=(512, 512)):
-    """Load and normalize images from a directory."""
+def load_images_from_directory(directory, target_size=(512, 512)): 
     images = []
     for filename in os.listdir(directory):
         if filename.endswith(".flt"):
@@ -35,16 +33,18 @@ def load_images_from_directory(directory, target_size=(512, 512)):
             images.append(img)
     return np.array(images)
 
-def save_as_flt(data, file_path):
-    """Save data as a .flt file."""
+def save_as_flt(data, file_path): 
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     with open(file_path, 'wb') as file:
         file.write(data.astype(np.float16).tobytes())
 
-def load_model_by_choice(choice):
-    """Load the model based on user choice."""
-    model = load_model(f'model_{choice}.keras')
-    return model
+def load_model_by_choice(choice): 
+    try:
+        model = load_model(f'model_{choice}.keras')
+        return model
+    except IOError:
+        print(f"Model model_{choice}.keras not found.")
+        return None
 
 def pick_model(choice):
     if choice == 1:
@@ -66,6 +66,14 @@ def train_selected_model(choice, X_train, y_train):
     else:
         print("Model loading failed. Training aborted.")
 
+def test_model(model, X_test, y_test): 
+    if model is not None:
+        loss, accuracy = model.evaluate(X_test, y_test, verbose=1)
+        print(f"Test loss: {loss}")
+        print(f"Test accuracy: {accuracy}")
+    else:
+        print("Model is not loaded or invalid.")
+
 # Data directories
 clean_dir = '/mmfs1/gscratch/uwb/CT_images/RECONS2024/900views'
 dirty_dir = '/mmfs1/gscratch/uwb/CT_images/RECONS2024/60views'
@@ -82,36 +90,41 @@ X_train, X_test, y_train, y_test = train_test_split(dirty_images, dirty_images_t
 # END DATA IMPLEMENTATION
 
 # User choice for training or testing
-test_or_train = input("Would you like to test or train? (train/test): ")
+test_or_train = input("Would you like to test or train?") 
+
 if test_or_train == "train":
-    training = True
-elif test_or_train == "test":
-    training = False 
-    
-# Model Selection
-print("Enter 1 for Transformers")
-print("Enter 2 for Unet")
-print("Enter 3 for DnCNN")
-number = int(input("Enter preference: "))
-
-if training:
+    # Model Selection
+    print("Enter 1 for Transformers")
+    print("Enter 2 for Unet")
+    print("Enter 3 for DnCNN")
+    number = int(input("Enter preference: "))
     train_selected_model(number, X_train, y_train)
+elif test_or_train == "test":
+    # Model Selection
+    print("Enter 1 for Transformers")
+    print("Enter 2 for Unet")
+    print("Enter 3 for DnCNN")
+    number = int(input("Enter preference: "))
+    
+    model = load_model_by_choice(number)
+    if model is None:
+        raise ValueError("Invalid model choice or model not found. Please enter 1, 2, or 3.")
+    
+    # Test the model
+    test_model(model, X_test, y_test)
 
-model = load_model_by_choice(number)
+    # Predict and Save
+    predicted_images = model.predict(dirty_images_test)
+
+    output_dir_original = '/mmfs1/gscratch/uwb/bkphill2/output/original_images'
+    output_dir_reconstructed = f'/mmfs1/gscratch/uwb/bkphill2/output/reconstructed_images{number}'
+
+    for i in range(len(clean_images_test)):
+        original_img = X_test[i]
+        reconstructed_img = predicted_images[i]
+        save_as_flt(original_img, os.path.join(output_dir_original, f'original_{i:04}.flt'))
+        save_as_flt(reconstructed_img, os.path.join(output_dir_reconstructed, f'reconstructed_{i:04}.flt'))
+
+    print(f"Saved original images to {output_dir_original}")
+    print(f"Saved reconstructed images to {output_dir_reconstructed}")
  
-# Predict and Save
-predicted_images = model.predict(dirty_images_test)
-
-output_dir_original = '/mmfs1/gscratch/uwb/bkphill2/output/original_images'
-output_dir_reconstructed = f'/mmfs1/gscratch/uwb/bkphill2/output/reconstructed_images{number}'
-
-for i in range(len(clean_images_test)):
-    original_img = X_test[i]
-    reconstructed_img = predicted_images[i]
-    save_as_flt(original_img, os.path.join(output_dir_original, f'original_{i:04}.flt'))
-    save_as_flt(reconstructed_img, os.path.join(output_dir_reconstructed, f'reconstructed_{i:04}.flt'))
-    save_as_png(original_img, os.path.join(output_dir_original, f'original_{i:04}.png'))
-    save_as_png(reconstructed_img, os.path.join(output_dir_reconstructed, f'reconstructed_{i:04}.png'))
-
-print(f"Saved original images to {output_dir_original}")
-print(f"Saved reconstructed images to {output_dir_reconstructed}")
