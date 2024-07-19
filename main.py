@@ -124,6 +124,8 @@ elif test_or_train == "test":
         reconstructed_img = predicted_images[i]
         save_as_flt(original_img, os.path.join(output_dir_original, f'original_{i:04}.flt'))
         save_as_flt(reconstructed_img, os.path.join(output_dir_reconstructed, f'reconstructed_{i:04}.flt'))
+        save_as_png(original_img, os.path.join(output_dir_original, f'original_{i:04}.png'))
+        save_as_png(reconstructed_img, os.path.join(output_dir_reconstructed, f'reconstructed_{i:04}.png'))
 
     print(f"Saved original images to {output_dir_original}")
     print(f"Saved reconstructed images to {output_dir_reconstructed}")
