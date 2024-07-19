@@ -91,6 +91,10 @@ X_train, X_test, y_train, y_test = train_test_split(dirty_images, dirty_images_t
 
 # User choice for training or testing
 test_or_train = input("Would you like to test or train?") 
+output_dir_original_train = '/mmfs1/gscratch/uwb/bkphill2/output/train/original_images'
+output_dir_reconstructed_train = f'/mmfs1/gscratch/uwb/bkphill2/output/train/reconstructed_images{number}'
+output_dir_original_test = '/mmfs1/gscratch/uwb/bkphill2/output/test/original_images'
+output_dir_reconstructed_test = f'/mmfs1/gscratch/uwb/bkphill2/output/test/reconstructed_images{number}'
 
 if test_or_train == "train":
     # Model Selection
@@ -101,17 +105,16 @@ if test_or_train == "train":
     train_selected_model(number, X_train, y_train)
     predicted_images = model.predict(dirty_images_test)
 
-    output_dir_original = '/mmfs1/gscratch/uwb/bkphill2/output/original_images'
-    output_dir_reconstructed = f'/mmfs1/gscratch/uwb/bkphill2/output/reconstructed_images{number}'
-
     for i in range(len(clean_images_test)):
         original_img = X_test[i]
         reconstructed_img = predicted_images[i]
         save_as_flt(original_img, os.path.join(output_dir_original, f'original_{i:04}.flt'))
         save_as_flt(reconstructed_img, os.path.join(output_dir_reconstructed, f'reconstructed_{i:04}.flt'))
+        save_as_png(original_img, os.path.join(output_dir_original_train, f'original_{i:04}.png'))
+        save_as_png(reconstructed_img, os.path.join(output_dir_reconstructed_train, f'reconstructed_{i:04}.png'))
 
-    print(f"Saved original images to {output_dir_original}")
-    print(f"Saved reconstructed images to {output_dir_reconstructed}")
+    print(f"Saved original images to {output_dir_original_train}")
+    print(f"Saved reconstructed images to {output_dir_reconstructed_train}")
     
 elif test_or_train == "test":
     # Model Selection
@@ -129,17 +132,14 @@ elif test_or_train == "test":
 
     # Predict and Save
     predicted_images = model.predict(dirty_images_test)
-
-    output_dir_original = '/mmfs1/gscratch/uwb/bkphill2/output/original_images'
-    output_dir_reconstructed = f'/mmfs1/gscratch/uwb/bkphill2/output/reconstructed_images{number}'
-
+    
     for i in range(len(clean_images_test)):
         original_img = X_test[i]
         reconstructed_img = predicted_images[i]
-        save_as_flt(original_img, os.path.join(output_dir_original, f'original_{i:04}.flt'))
-        save_as_flt(reconstructed_img, os.path.join(output_dir_reconstructed, f'reconstructed_{i:04}.flt'))
-        save_as_png(original_img, os.path.join(output_dir_original, f'original_{i:04}.png'))
-        save_as_png(reconstructed_img, os.path.join(output_dir_reconstructed, f'reconstructed_{i:04}.png'))
+        save_as_flt(original_img, os.path.join(output_dir_original_test, f'original_{i:04}.flt'))
+        save_as_flt(reconstructed_img, os.path.join(output_dir_reconstructed_test, f'reconstructed_{i:04}.flt'))
+        save_as_png(original_img, os.path.join(output_dir_original_test, f'original_{i:04}.png'))
+        save_as_png(reconstructed_img, os.path.join(output_dir_reconstructed_test, f'reconstructed_{i:04}.png'))
 
     print(f"Saved original images to {output_dir_original}")
     print(f"Saved reconstructed images to {output_dir_reconstructed}")
