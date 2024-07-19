@@ -7,10 +7,10 @@ from tensorflow.keras.models import load_model
 
 # Import necessary functions and classes
 from Transformer import build_transformer_model
-from  Unet import unet_model
+from Unet import unet_model
 from dncc import DnCNN
 
-#No annoying messages
+# No annoying messages
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppress TensorFlow logging (1: INFO, 2: WARNING, 3: ERROR)
 tf.get_logger().setLevel('ERROR')  # Suppress TensorFlow logging (alternative method)
 
@@ -35,27 +35,11 @@ def load_images_from_directory(directory, target_size=(512, 512)):
             images.append(img)
     return np.array(images)
 
-# Directories
-clean_dir = '/mmfs1/gscratch/uwb/CT_images/RECONS2024/900views'
-dirty_dir = '/mmfs1/gscratch/uwb/CT_images/RECONS2024/60views'
-
-clean_dir_test = '/mmfs1/gscratch/uwb/CT_images/recons2024/900views'
-dirty_dir_test = '/mmfs1/gscratch/uwb/CT_images/recons2024/60views'
-
-clean_images = load_images_from_directory(clean_dir)
-dirty_images = load_images_from_directory(dirty_dir)
-clean_images_test = load_images_from_directory(clean_dir_test)
-dirty_images_test = load_images_from_directory(dirty_dir_test)
-
-X_train, X_test, y_train, y_test = train_test_split(dirty_images, dirty_images_test, clean_images, clean_images_test, test_size=0.2, random_state=42)
-# END DATA IMPLEMENTATION
-
 def save_as_flt(data, file_path):
     """Save data as a .flt file."""
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     with open(file_path, 'wb') as file:
         file.write(data.astype(np.float16).tobytes())
-
 
 def load_model_by_choice(choice):
     """Load the model based on user choice."""
@@ -78,28 +62,44 @@ def train_selected_model(choice, X_train, y_train):
         assert model.output_shape == (None, 512, 512, 1), "Mismatch in model output shape."
         model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
         model.fit(X_train, y_train, validation_split=0.1, epochs=10, batch_size=8)
+        model.save(f'model_{choice}.keras')
     else:
         print("Model loading failed. Training aborted.")
-    model.save(f'model_{choice}.keras')
 
-test_or_train = input("Would you like to test or train?")
-if test_or_train == "train" or test_or_train :
+# Data directories
+clean_dir = '/mmfs1/gscratch/uwb/CT_images/RECONS2024/900views'
+dirty_dir = '/mmfs1/gscratch/uwb/CT_images/RECONS2024/60views'
+
+clean_dir_test = '/mmfs1/gscratch/uwb/CT_images/recons2024/900views'
+dirty_dir_test = '/mmfs1/gscratch/uwb/CT_images/recons2024/60views'
+
+clean_images = load_images_from_directory(clean_dir)
+dirty_images = load_images_from_directory(dirty_dir)
+clean_images_test = load_images_from_directory(clean_dir_test)
+dirty_images_test = load_images_from_directory(dirty_dir_test)
+
+X_train, X_test, y_train, y_test = train_test_split(dirty_images, dirty_images_test, clean_images, clean_images_test, test_size=0.2, random_state=42)
+# END DATA IMPLEMENTATION
+
+# User choice for training or testing
+test_or_train = input("Would you like to test or train? (train/test): ")
+if test_or_train == "train":
     training = True
 elif test_or_train == "test":
-    training = False
+    training = False 
     
 # Model Selection
 print("Enter 1 for Transformers")
 print("Enter 2 for Unet")
 print("Enter 3 for DnCNN")
-number = int(input("Enter preference:"))
+number = int(input("Enter preference: "))
 
 if training:
     train_selected_model(number, X_train, y_train)
 
 model = load_model_by_choice(number)
 if model is None:
-    raise ValueError("Invalid model choice. Please enter 1, 2, or 3.")
+    raise ValueError("Invalid model choice or model not found. Please enter 1, 2, or 3.")
 
 # Predict and Save
 predicted_images = model.predict(dirty_images_test)
