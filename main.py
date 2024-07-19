@@ -98,9 +98,7 @@ if training:
     train_selected_model(number, X_train, y_train)
 
 model = load_model_by_choice(number)
-if model is None:
-    raise ValueError("Invalid model choice or model not found. Please enter 1, 2, or 3.")
-
+ 
 # Predict and Save
 predicted_images = model.predict(dirty_images_test)
 
