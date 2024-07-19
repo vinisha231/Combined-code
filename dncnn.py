@@ -22,3 +22,4 @@ def DnCNN(depth=17, filters=64, image_channels=1, use_bn=True):
     model = models.Model(inputs=input_layer, outputs=output_layer, name='DnCNN')
     return model
 
+model = DnCNN(depth=17, filters=64, image_channels=1, use_bn=True)
