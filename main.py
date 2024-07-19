@@ -99,6 +99,20 @@ if test_or_train == "train":
     print("Enter 3 for DnCNN")
     number = int(input("Enter preference: "))
     train_selected_model(number, X_train, y_train)
+    predicted_images = model.predict(dirty_images_test)
+
+    output_dir_original = '/mmfs1/gscratch/uwb/bkphill2/output/original_images'
+    output_dir_reconstructed = f'/mmfs1/gscratch/uwb/bkphill2/output/reconstructed_images{number}'
+
+    for i in range(len(clean_images_test)):
+        original_img = X_test[i]
+        reconstructed_img = predicted_images[i]
+        save_as_flt(original_img, os.path.join(output_dir_original, f'original_{i:04}.flt'))
+        save_as_flt(reconstructed_img, os.path.join(output_dir_reconstructed, f'reconstructed_{i:04}.flt'))
+
+    print(f"Saved original images to {output_dir_original}")
+    print(f"Saved reconstructed images to {output_dir_reconstructed}")
+    
 elif test_or_train == "test":
     # Model Selection
     print("Enter 1 for Transformers")
