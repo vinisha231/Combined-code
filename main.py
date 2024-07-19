@@ -82,13 +82,20 @@ def train_selected_model(choice, X_train, y_train):
         print("Model loading failed. Training aborted.")
     model.save(f'model_{choice}.keras')
 
+test_or_train = input("Would you like to test or train?")
+if test_or_train == "train" or test_or_train :
+    training = True
+elif test_or_train == "test":
+    training = False
+    
 # Model Selection
 print("Enter 1 for Transformers")
 print("Enter 2 for Unet")
 print("Enter 3 for DnCNN")
 number = int(input("Enter preference:"))
 
-train_selected_model(number, X_train, y_train)
+if training:
+    train_selected_model(number, X_train, y_train)
 
 model = load_model_by_choice(number)
 if model is None:
