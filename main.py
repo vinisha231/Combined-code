@@ -75,18 +75,11 @@ def test_model(model, X_test, y_test):
         print("Model is not loaded or invalid.")
 
 # Data directories
-clean_dir = '/mmfs1/gscratch/uwb/CT_images/RECONS2024/900views'
-dirty_dir = '/mmfs1/gscratch/uwb/CT_images/RECONS2024/60views'
+clean_dir_train = '/mmfs1/gscratch/uwb/CT_images/RECONS2024/900views'
+dirty_dir_test = '/mmfs1/gscratch/uwb/CT_images/RECONS2024/60views'
 
 clean_dir_test = '/mmfs1/gscratch/uwb/CT_images/recons2024/900views'
 dirty_dir_test = '/mmfs1/gscratch/uwb/CT_images/recons2024/60views'
-
-clean_images = load_images_from_directory(clean_dir)
-dirty_images = load_images_from_directory(dirty_dir)
-clean_images_test = load_images_from_directory(clean_dir_test)
-dirty_images_test = load_images_from_directory(dirty_dir_test)
-
-X_train, X_test, y_train, y_test = train_test_split(dirty_images, dirty_images_test, clean_images, clean_images_test, test_size=0.2, random_state=42)
 # END DATA IMPLEMENTATION
 
 # User choice for training or testing
@@ -102,6 +95,9 @@ if test_or_train == "train":
     print("Enter 2 for Unet")
     print("Enter 3 for DnCNN")
     number = int(input("Enter preference: "))
+    clean_images_train = load_images_from_directory(clean_dir_train)
+    dirty_images_train = load_images_from_directory(dirty_dir_train)
+    X_train, y_train = dirty_images_train, clean_images_train
     train_selected_model(number, X_train, y_train)
     predicted_images = model.predict(dirty_images_test)
 
@@ -122,7 +118,9 @@ elif test_or_train == "test":
     print("Enter 2 for Unet")
     print("Enter 3 for DnCNN")
     number = int(input("Enter preference: "))
-    
+    clean_images_test = load_images_from_directory(clean_dir_test)
+    dirty_images_test = load_images_from_directory(dirty_dir_test)
+    X_test, y_test = dirty_images_test, clean_images_test
     model = load_model_by_choice(number)
     if model is None:
         raise ValueError("Invalid model choice or model not found. Please enter 1, 2, or 3.")
