@@ -59,8 +59,9 @@ def build_transformer_model(num_patches, projection_dim, num_heads, transformer_
     x = layers.Conv2D(128, (3, 3), activation='relu', padding='same')(x) #Filter that image with 128 3x3 filters
     x = layers.UpSampling2D((2, 2))(x)  #Upsamples image to 128x128
     x = layers.Conv2D(64, (3, 3), activation='relu', padding='same')(x) #Second filter pass
-    x = layers.UpSampling2D((4, 4))(x)  #Gets us back to 512x512 image
-    outputs = layers.Conv2D(3, (3, 3), activation='sigmoid', padding='same')(x)  # Output layer to reconstruct the image
+    x = layers.UpSampling2D((4, 4))(x)  #Gets us back to 512x512 image       
+    x = Layers.Conv2D(32, (3, 3), activation='relu', padding='same')(x)
+    outputs = layers.Conv2D(3, (3, 3), activation='linear', padding='same')(x)  # Output layer to reconstruct the image
 
     return tf.keras.Model(inputs, outputs)  # Return the model object
 
