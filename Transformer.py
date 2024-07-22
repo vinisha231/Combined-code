@@ -51,7 +51,7 @@ def build_transformer_model(num_patches, projection_dim, num_heads, transformer_
 
     x = encoded_patches  #Variable storage of encoded patches
     for _ in range(transformer_layers): #For ever transformer layer
-    x = TransformerBlock(projection_dim, num_heads)(x) #Iterate the transformer block on the patches
+            x = TransformerBlock(projection_dim, num_heads)(x) #Iterate the transformer block on the patches
 
     # Use Conv2D and UpSampling2D layers to reconstruct the image
     x = layers.Reshape((64, 64, 64))(x) #Reshape as 64x64x64 tensor
