@@ -52,7 +52,7 @@ def pick_model(choice):
     elif choice == 2:
         model = unet_model()
     else:
-        model = DnCNN(depth=17, filters=64, image_channels=1, use_bnorm=True)
+        model = DnCNN(depth=17, filters=64, image_channels=1, use_bn=True)
     return model
 
 def train_selected_model(choice, X_train, y_train):
