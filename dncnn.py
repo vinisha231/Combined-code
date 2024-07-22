@@ -8,7 +8,7 @@ from tensorflow.keras.layers import Subtract
 from glob import glob
 
 def DnCNN(depth=17, filters=64, image_channels=1, use_bn=True):
-    input_layer = Input(shape=(None, None, image_channels), name='input')
+    input_layer = Input(shape=(512, 512, image_channels), name='input')
     x = layers.Conv2D(filters, kernel_size=3, padding='same', activation='relu')(input_layer)
 
     for _ in range(depth-2):
