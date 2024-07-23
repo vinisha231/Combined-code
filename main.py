@@ -8,7 +8,7 @@ from tensorflow.keras.models import load_model
 # Import necessary functions and classes
 from Transformer import build_transformer_model
 from Unet import unet_model
-from dncc import DnCNN
+from dncnn import DnCNN
 
 # No annoying messages
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppress TensorFlow logging (1: INFO, 2: WARNING, 3: ERROR)
@@ -76,7 +76,7 @@ def test_model(model, X_test, y_test):
 
 # Data directories
 clean_dir_train = '/mmfs1/gscratch/uwb/CT_images/RECONS2024/900views'
-dirty_dir_test = '/mmfs1/gscratch/uwb/CT_images/RECONS2024/60views'
+dirty_dir_train = '/mmfs1/gscratch/uwb/CT_images/RECONS2024/60views'
 
 clean_dir_test = '/mmfs1/gscratch/uwb/CT_images/recons2024/900views'
 dirty_dir_test = '/mmfs1/gscratch/uwb/CT_images/recons2024/60views'
@@ -85,9 +85,9 @@ dirty_dir_test = '/mmfs1/gscratch/uwb/CT_images/recons2024/60views'
 # User choice for training or testing
 test_or_train = input("Would you like to test or train?") 
 output_dir_original_train = '/mmfs1/gscratch/uwb/bkphill2/output/train/original_images'
-output_dir_reconstructed_train = f'/mmfs1/gscratch/uwb/bkphill2/output/train/reconstructed_images{number}'
+output_dir_reconstructed_train = f'/mmfs1/gscratch/uwb/bkphill2/output/train/reconstructed_images'
 output_dir_original_test = '/mmfs1/gscratch/uwb/bkphill2/output/test/original_images'
-output_dir_reconstructed_test = f'/mmfs1/gscratch/uwb/bkphill2/output/test/reconstructed_images{number}'
+output_dir_reconstructed_test = f'/mmfs1/gscratch/uwb/bkphill2/output/test/reconstructed_images'
 
 if test_or_train == "train":
     # Model Selection
