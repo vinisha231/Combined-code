@@ -111,6 +111,7 @@ if test_or_train == "train":
 
     print(f"Saved original images to {output_dir_original_train}")
     print(f"Saved reconstructed images to {output_dir_reconstructed_train}")
+    print(model.summary())
     
 elif test_or_train == "test":
     # Model Selection
