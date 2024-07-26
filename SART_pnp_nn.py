@@ -288,7 +288,6 @@ for n in range(len(fnames)):
             p = f_out - f
             pnorm = np.linalg.norm(p,'fro') + eps
             print("pnorm: " + str(pnorm))
-            f = f.numpy()
             f = f.astype(np.float64)
             #Update alpha
             if k == kmin:
