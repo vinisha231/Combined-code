@@ -312,6 +312,9 @@ for n in range(len(fnames)):
         # SART loop                                                            #
         for j in range(ns):
             ind1 = range(j,numtheta,ns);
+            if isinstance(f, tf.Tensor):
+            f = f.numpy()  
+            f = f.astype(np.float64) 
             p = P[j]
             fp_id,fp = astra.create_sino(f,p)
             #Perform elementwise division
