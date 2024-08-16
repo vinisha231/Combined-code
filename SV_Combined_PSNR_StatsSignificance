@@ -1,0 +1,219 @@
+#Importing all of the packages
+import numpy as np
+import pandas as pd
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
+from statsmodels.formula.api import ols
+import statsmodels.api as sm
+import skimage.metrics as ski_metrics
+import matplotlib.pyplot as plt
+from glob import glob
+import os
+from scipy.stats import f_oneway
+
+# Define directories, all files must be .flt format
+true_img_dir = '/mmfs1/gscratch/uwb/CT_images/recons2024/900views' #The directory that holds the 900 view reconstructed images
+sv60_img_dir = '/mmfs1/gscratch/uwb/CT_images/recons2024/60views' #The directory that holds the 60 view reconstructed images 
+dncnn_img_dir = '/mmfs1/gscratch/uwb/CT_network_outputs/newDnCNNpostprocessing250epochs' #The directory that holds the post-processing DnCNN tested images
+transformer_img_dir = '/mmfs1/gscratch/uwb/CT_network_outputs/transformer_postp_sv' #The directory that holds the post-processing Transformer tested images
+unet_img_dir = '/mmfs1/gscratch/uwb/CT_network_outputs/unet_nD_data_python3.12.4/flt_dir' #The directory that holds the post-processing U-net tested images
+SARTdncnn_img_dir = '/mmfs1/gscratch/uwb/CT_network_outputs/dncnn_pnp_flts' #The directory that holds the plug-and-play DnCNN tested images
+SARTtransformer_img_dir = '/mmfs1/gscratch/uwb/CT_network_outputs/transformer_pnp_sv' #The directory that holds the plug-and-play Transformer tested images
+SARTunet_img_dir = '/mmfs1/gscratch/uwb/CT_network_outputs/unet_nD_data_python3.12.4/pnp_flt_dir' #The directory that holds the plug-and-play U-net tested images
+
+# Collect images
+true_img_list = sorted(glob(os.path.join(true_img_dir, '*.flt'))) #Creates a sorted list of all .flt files in the directory specified by true_img_dir.
+sv60_img_list = sorted(glob(os.path.join(sv60_img_dir, '*.flt'))) #Creates a sorted list of all .flt files in the directory sv60_img_dir
+dncnn_img_list = sorted(glob(os.path.join(dncnn_img_dir, '*.flt'))) #Creates a sorted list of all .flt files in the directory dncnn_img_dir
+transformer_img_list = sorted(glob(os.path.join(transformer_img_dir, '*.flt'))) #Creates a sorted list of all .flt files in the directory transformer_img_dir
+unet_img_list = sorted(glob(os.path.join(unet_img_dir, '*.flt'))) #Creates a sorted list of all .flt files in the directory unet_img_dir
+SARTdncnn_img_list = sorted(glob(os.path.join(SARTdncnn_img_dir, '*.flt'))) #Creates a sorted list of all .flt files in the directory SARTdncnn_img_dir
+SARTtransformer_img_list = sorted(glob(os.path.join(SARTtransformer_img_dir, '*.flt'))) #Creates a sorted list of all .flt files in the directory SARTtransformer_img_dir
+SARTunet_img_list = sorted(glob(os.path.join(SARTunet_img_dir, '*.flt'))) #Creates a sorted list of all .flt files in the directory SARTunet_img_dir
+
+# Debugging: Print the lengths of the lists
+print(f"Number of true images: {len(true_img_list)}") #Prints the number of images in the true_img_list to ensure that is is 325
+print(f"Number of SV60 images: {len(sv60_img_list)}") #Prints the number of images in the sv60_img_list to ensure that is is 325
+print(f"Number of DnCNN images: {len(dncnn_img_list)}") #Prints the number of images in the dncnn_img_list to ensure that is is 325
+print(f"Number of Transformer images: {len(transformer_img_list)}") #Prints the number of images in the transformer_img_list to ensure that is is 325
+print(f"Number of Unet images: {len(unet_img_list)}") #Prints the number of images in the unet_img_list to ensure that is is 325
+print(f"Number of SART DnCNN images: {len(SARTdncnn_img_list)}") #Prints the number of images in the SARTdncnn_img_list to ensure that is is 325
+print(f"Number of SART Transformer images: {len(SARTtransformer_img_list)}") #Prints the number of images in the SARTtransformer_img_list to ensure that is is 325
+print(f"Number of SART Unet images: {len(SARTunet_img_list)}") #Prints the number of images in the SARTunet_img_list to ensure that is is 325
+
+#Initializing empty lists to store the PSNR and SSIM values for all post-processing models
+psnr_values_sv60, psnr_values_dncnn, psnr_values_transformer, psnr_values_unet = [], [], [], []
+ssim_values_sv60, ssim_values_dncnn, ssim_values_transformer, ssim_values_unet = [], [], [], []
+
+#Initializing empty lists to store the PSNR and SSIM values for all plug-and-play models
+psnr_values_SARTdncnn, psnr_values_SARTtransformer, psnr_values_SARTunet = [], [], []
+ssim_values_SARTdncnn, ssim_values_SARTtransformer, ssim_values_SARTunet = [], [], []
+
+# Process and plot images
+for idx, (true_file, sv60_file, dncnn_file, transformer_file, unet_file, SARTdncnn_file, SARTtransformer_file, SARTunet_file) in enumerate(
+        zip(true_img_list, sv60_img_list, dncnn_img_list, transformer_img_list, unet_img_list, SARTdncnn_img_list, SARTtransformer_img_list, SARTunet_img_list)):
+    print(true_file) 
+    
+    true = np.fromfile(true_file, dtype='f').reshape(512, 512) 
+
+    max_val = np.amax(true)
+
+    # SV60
+    recon_sv60 = np.fromfile(sv60_file, dtype='f').reshape(512, 512) #Reshapes the reconstructed image from the sv60_file in the same manner as the true image. The resulting recon_sv60 variable holds the reconstructed image data.
+    psnr_values_sv60.append(ski_metrics.peak_signal_noise_ratio(true, recon_sv60, data_range=max_val)) #This calculates the PSNR between the true image and the recon_sv60 image, using max_val as the data_range.  
+    ssim_values_sv60.append(ski_metrics.structural_similarity(true, recon_sv60, data_range=max_val)) #This calculates the SSIM between the true image and the recon_sv60 image, also using max_val as the data_range.
+
+    # DnCNN
+    recon_dncnn = np.fromfile(dncnn_file, dtype='f').reshape(512, 512) #Reshapes the reconstructed image from the dncnn_file in the same manner as the true image. The resulting recon_dncnn variable holds the reconstructed image data.
+    psnr_values_dncnn.append(ski_metrics.peak_signal_noise_ratio(true, recon_dncnn, data_range=max_val)) #This calculates the PSNR between the true image and the recon_dncnn image, using max_val as the data_range. 
+    ssim_values_dncnn.append(ski_metrics.structural_similarity(true, recon_dncnn, data_range=max_val)) #This calculates the SSIM between the true image and the recon_dncnn image, also using max_val as the data_range.
+
+
+    # Transformer
+    recon_transformer = np.fromfile(transformer_file, dtype='f').reshape(512, 512) #Reshapes the reconstructed image from the transformer_file in the same manner as the true image. The resulting recon_transformer variable holds the reconstructed image data.
+    psnr_values_transformer.append(ski_metrics.peak_signal_noise_ratio(true, recon_transformer, data_range=max_val)) #This calculates the PSNR between the true image and the recon_transformer image, using max_val as the data_range. 
+    ssim_values_transformer.append(ski_metrics.structural_similarity(true, recon_transformer, data_range=max_val)) #This calculates the SSIM between the true image and the recon_transformer image, also using max_val as the data_range.
+
+
+    # Unet
+    recon_unet = np.fromfile(unet_file, dtype='f').reshape(512, 512) #Reshapes the reconstructed image from the unet_file in the same manner as the true image. The resulting recon_unet variable holds the reconstructed image data.
+    psnr_values_unet.append(ski_metrics.peak_signal_noise_ratio(true, recon_unet, data_range=max_val)) #This calculates the PSNR between the true image and the recon_unet image, using max_val as the data_range. 
+    ssim_values_unet.append(ski_metrics.structural_similarity(true, recon_unet, data_range=max_val)) #This calculates the SSIM between the true image and the recon_unet image, also using max_val as the data_range.
+
+    # SART DnCNN
+    recon_SARTdncnn = np.fromfile(SARTdncnn_file, dtype='f').reshape(512, 512)
+    psnr_values_SARTdncnn.append(ski_metrics.peak_signal_noise_ratio(true, recon_SARTdncnn, data_range=max_val))
+    ssim_values_SARTdncnn.append(ski_metrics.structural_similarity(true, recon_SARTdncnn, data_range=max_val))
+
+    # SART Transformer
+    recon_SARTtransformer = np.fromfile(SARTtransformer_file, dtype='f').reshape(512, 512)
+    psnr_values_SARTtransformer.append(ski_metrics.peak_signal_noise_ratio(true, recon_SARTtransformer, data_range=max_val))
+    ssim_values_SARTtransformer.append(ski_metrics.structural_similarity(true, recon_SARTtransformer, data_range=max_val))
+
+    # SART Unet
+    recon_SARTunet = np.fromfile(SARTunet_file, dtype='f').reshape(512, 512)
+    psnr_values_SARTunet.append(ski_metrics.peak_signal_noise_ratio(true, recon_SARTunet, data_range=max_val))
+    ssim_values_SARTunet.append(ski_metrics.structural_similarity(true, recon_SARTunet, data_range=max_val))
+
+#    # Plot images
+    fig, axes = plt.subplots(2, 4, figsize=(20, 10))
+    axes = axes.flatten()
+
+    plot_idx = 0
+    axes[plot_idx].imshow(true, cmap='gray')
+    axes[plot_idx].set_title(f"True Image {idx+1}")
+    axes[plot_idx].axis('off')
+
+    axes[plot_idx + 4].imshow(recon_sv60, cmap='gray')
+    axes[plot_idx + 4].set_title(f"SV60 Recon {idx+1}")
+    axes[plot_idx + 4].axis('off')
+
+    axes[plot_idx + 1].imshow(recon_dncnn, cmap='gray')
+    axes[plot_idx + 1].set_title(f"Post DnCNN Recon {idx+1}")
+    axes[plot_idx + 1].axis('off')
+
+    axes[plot_idx + 2].imshow(recon_transformer, cmap='gray')
+    axes[plot_idx + 2].set_title(f"Post Transformer Recon {idx+1}")
+    axes[plot_idx + 2].axis('off')
+
+    axes[plot_idx + 3].imshow(recon_unet, cmap='gray')
+    axes[plot_idx + 3].set_title(f"Post Unet Recon {idx+1}")
+    axes[plot_idx + 3].axis('off')
+
+    axes[plot_idx + 5].imshow(recon_SARTdncnn, cmap='gray')
+    axes[plot_idx + 5].set_title(f"PnP DnCNN Recon {idx+1}")
+    axes[plot_idx + 5].axis('off')
+
+    axes[plot_idx + 6].imshow(recon_SARTtransformer, cmap='gray')
+    axes[plot_idx + 6].set_title(f"PnP Transformer Recon {idx+1}")
+    axes[plot_idx + 6].axis('off')
+
+    axes[plot_idx + 7].imshow(recon_SARTunet, cmap='gray')
+    axes[plot_idx + 7].set_title(f"PnP Unet Recon {idx+1}")
+    axes[plot_idx + 7].axis('off')
+
+    # Save the figure
+    plt.savefig(f'/mmfs1/gscratch/uwb/econran/newstdimageoutput/combined_image_{idx+1}.png', bbox_inches='tight')
+    plt.close(fig)
+
+# Calculate mean and standard deviation for PSNR values
+mean_psnr_sv60 = np.mean(psnr_values_sv60)
+std_psnr_sv60 = np.std(psnr_values_sv60)
+mean_psnr_dncnn = np.mean(psnr_values_dncnn)
+std_psnr_dncnn = np.std(psnr_values_dncnn)
+mean_psnr_transformer = np.mean(psnr_values_transformer)
+std_psnr_transformer = np.std(psnr_values_transformer)
+mean_psnr_unet = np.mean(psnr_values_unet)
+std_psnr_unet = np.std(psnr_values_unet)
+mean_psnr_SARTdncnn = np.mean(psnr_values_SARTdncnn)
+std_psnr_SARTdncnn = np.std(psnr_values_SARTdncnn)
+mean_psnr_SARTtransformer = np.mean(psnr_values_SARTtransformer)
+std_psnr_SARTtransformer = np.std(psnr_values_SARTtransformer)
+mean_psnr_SARTunet = np.mean(psnr_values_SARTunet)
+std_psnr_SARTunet = np.std(psnr_values_SARTunet)
+
+# Calculate mean and standard deviation for SSIM values
+mean_ssim_sv60 = np.mean(ssim_values_sv60)
+std_ssim_sv60 = np.std(ssim_values_sv60)
+mean_ssim_dncnn = np.mean(ssim_values_dncnn)
+std_ssim_dncnn = np.std(ssim_values_dncnn)
+mean_ssim_transformer = np.mean(ssim_values_transformer)
+std_ssim_transformer = np.std(ssim_values_transformer)
+mean_ssim_unet = np.mean(ssim_values_unet)
+std_ssim_unet = np.std(ssim_values_unet)
+mean_ssim_SARTdncnn = np.mean(ssim_values_SARTdncnn)
+std_ssim_SARTdncnn = np.std(ssim_values_SARTdncnn)
+mean_ssim_SARTtransformer = np.mean(ssim_values_SARTtransformer)
+std_ssim_SARTtransformer = np.std(ssim_values_SARTtransformer)
+mean_ssim_SARTunet = np.mean(ssim_values_SARTunet)
+std_ssim_SARTunet = np.std(ssim_values_SARTunet)
+
+print(f"SV60 - Mean PSNR: {mean_psnr_sv60:1.4f}, Std PSNR: {std_psnr_sv60:1.4f}")
+print(f"SV60 - Mean SSIM: {mean_ssim_sv60:1.4f}, Std SSIM: {std_ssim_sv60:1.4f}")
+print(f"DnCNN - Mean PSNR: {mean_psnr_dncnn:1.4f}, Std PSNR: {std_psnr_dncnn:1.4f}")
+print(f"DnCNN - Mean SSIM: {mean_ssim_dncnn:1.4f}, Std SSIM: {std_ssim_dncnn:1.4f}")
+print(f"Transformer - Mean PSNR: {mean_psnr_transformer:1.4f}, Std PSNR: {std_psnr_transformer:1.4f}")
+print(f"Transformer - Mean SSIM: {mean_ssim_transformer:1.4f}, Std SSIM: {std_ssim_transformer:1.4f}")
+print(f"Unet - Mean PSNR: {mean_psnr_unet:1.4f}, Std PSNR: {std_psnr_unet:1.4f}")
+print(f"Unet - Mean SSIM: {mean_ssim_unet:1.4f}, Std SSIM: {std_ssim_unet:1.4f}")
+print(f"SART DnCNN - Mean PSNR: {mean_psnr_SARTdncnn:1.4f}, Std PSNR: {std_psnr_SARTdncnn:1.4f}")
+print(f"SART DnCNN - Mean SSIM: {mean_ssim_SARTdncnn:1.4f}, Std SSIM: {std_ssim_SARTdncnn:1.4f}")
+print(f"SART Transformer - Mean PSNR: {mean_psnr_SARTtransformer:1.4f}, Std PSNR: {std_psnr_SARTtransformer:1.4f}")
+print(f"SART Transformer - Mean SSIM: {mean_ssim_SARTtransformer:1.4f}, Std SSIM: {std_ssim_SARTtransformer:1.4f}")
+print(f"SART Unet - Mean PSNR: {mean_psnr_SARTunet:1.4f}, Std PSNR: {std_psnr_SARTunet:1.4f}")
+print(f"SART Unet - Mean SSIM: {mean_ssim_SARTunet:1.4f}, Std SSIM: {std_ssim_SARTunet:1.4f}")
+
+psnr_data = {
+    'values': psnr_values_sv60 + psnr_values_dncnn + psnr_values_transformer + psnr_values_unet + psnr_values_SARTdncnn + psnr_values_SARTtransformer + psnr_values_SARTunet,
+    'method': ['SV60'] * len(psnr_values_sv60) +
+              ['DnCNN'] * len(psnr_values_dncnn) +
+              ['Transformer'] * len(psnr_values_transformer) +
+              ['Unet'] * len(psnr_values_unet) +
+              ['SART DnCNN'] * len(psnr_values_SARTdncnn) +
+              ['SART Transformer'] * len(psnr_values_SARTtransformer) +
+              ['SART Unet'] * len(psnr_values_SARTunet)
+}
+psnr_df = pd.DataFrame(psnr_data)
+
+ssim_data = {
+    'values': ssim_values_sv60 + ssim_values_dncnn + ssim_values_transformer + ssim_values_unet + ssim_values_SARTdncnn + ssim_values_SARTtransformer + ssim_values_SARTunet,
+    'method': ['SV60'] * len(ssim_values_sv60) +
+              ['DnCNN'] * len(ssim_values_dncnn) +
+              ['Transformer'] * len(ssim_values_transformer) +
+              ['Unet'] * len(ssim_values_unet) +
+              ['SART DnCNN'] * len(ssim_values_SARTdncnn) +
+              ['SART Transformer'] * len(ssim_values_SARTtransformer) +
+              ['SART Unet'] * len(ssim_values_SARTunet)
+}
+ssim_df = pd.DataFrame(ssim_data)
+
+# Tukey's HSD for PSNR values
+psnr_model = ols('values ~ C(method)', data=psnr_df).fit()
+psnr_tukey = pairwise_tukeyhsd(endog=psnr_df['values'], groups=psnr_df['method'], alpha=0.05)
+print("\nTukey's HSD results for PSNR values:")
+print(psnr_tukey)
+
+# Tukey's HSD for SSIM values
+ssim_model = ols('values ~ C(method)', data=ssim_df).fit()
+ssim_tukey = pairwise_tukeyhsd(endog=ssim_df['values'], groups=ssim_df['method'], alpha=0.05)
+print("\nTukey's HSD results for SSIM values:")
+print(ssim_tukey)
