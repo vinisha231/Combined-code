@@ -28,8 +28,8 @@ def read_flt_file(file_path, shape):
         return np.array(struct.unpack('f' * (len(data) // 4), data)).reshape(shape)
 
 def load_real_data(noisy_dir, normal_dir, shape, limit=100):
-    noisy_paths = sorted(glob(os.path.join(noisy_dir, '*.flt')))[:limit]
-    normal_paths = sorted(glob(os.path.join(normal_dir, '*.flt')))[:limit]
+    noisy_paths = sorted(glob(os.path.join(noisy_dir, '*.flt')))
+    normal_paths = sorted(glob(os.path.join(normal_dir, '*.flt')))
 
     noisy_images = [read_flt_file(path, shape) for path in noisy_paths]
     normal_images = [read_flt_file(path, shape) for path in normal_paths]
